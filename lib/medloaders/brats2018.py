@@ -29,13 +29,16 @@ class MICCAIBraTS2018(Dataset):
         self.mode = mode
         self.root = str(dataset_path)
         self.training_path = self.root + '/MICCAI_BraTS_2018_Data_Training/'
-        self.testing_path = self.root + ' '
+        self.testing_path = self.root + '/MICCAI_BraTS_2018_Data_Validation/'
         self.CLASSES = 4
         self.full_vol_dim = (240, 240, 155)  # slice, width, height
         self.crop_size = crop_dim
-        self.threshold = args.threshold
-        self.normalization = args.normalization
-        self.augmentation = args.augmentation
+        # self.threshold = args.threshold
+        # self.threshold = 1e-3
+        # self.normalization = args.normalization
+        # self.normalization = True
+        # self.augmentation = args.augmentation
+        self.augmentation = False
         self.list = []
         self.samples = samples
         self.full_volume = None
@@ -48,7 +51,7 @@ class MICCAIBraTS2018(Dataset):
                             augment3D.ElasticTransform()], p=0.5)
         if load:
             ## load pre-generated data
-            list_IDsT1 = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t1.nii.gz')))
+            list_IDsT1 = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t1.nii')))
             self.affine = img_loader.load_affine_matrix(list_IDsT1[0])
             self.list = utils.load_list(self.save_name)
             return
@@ -57,13 +60,15 @@ class MICCAIBraTS2018(Dataset):
         self.sub_vol_path = self.root + '/MICCAI_BraTS_2018_Data_Training/generated/' + mode + subvol + '/'
         utils.make_dirs(self.sub_vol_path)
 
-        list_IDsT1 = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t1.nii.gz')))
-        list_IDsT1ce = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t1ce.nii.gz')))
-        list_IDsT2 = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t2.nii.gz')))
-        list_IDsFlair = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*_flair.nii.gz')))
-        labels = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*_seg.nii.gz')))
+        list_IDsT1 = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t1.nii')))
+        list_IDsT1ce = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t1ce.nii')))
+        list_IDsT2 = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*t2.nii')))
+        list_IDsFlair = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*_flair.nii')))
+        labels = sorted(glob.glob(os.path.join(self.training_path, '*GG/*/*_seg.nii')))
         # print(len(list_IDsT1),len(list_IDsT2),len(list_IDsFlair),len(labels))
 
+        print(len(list_IDsFlair))
+        print(self.training_path)
         self.affine = img_loader.load_affine_matrix(list_IDsT1[0])
 
         if self.mode == 'train':
@@ -73,28 +78,36 @@ class MICCAIBraTS2018(Dataset):
             list_IDsFlair = list_IDsFlair[:split_idx]
             labels = labels[:split_idx]
 
+            # self.list = create_sub_volumes(list_IDsT1, list_IDsT1ce, list_IDsT2, list_IDsFlair, labels,
+            #                                dataset_name="brats2018", mode=mode, samples=samples,
+            #                                full_vol_dim=self.full_vol_dim, crop_size=self.crop_size,
+            #                                sub_vol_path=self.sub_vol_path, normalization=self.normalization,
+            #                                th_percent=self.threshold)
             self.list = create_sub_volumes(list_IDsT1, list_IDsT1ce, list_IDsT2, list_IDsFlair, labels,
                                            dataset_name="brats2018", mode=mode, samples=samples,
                                            full_vol_dim=self.full_vol_dim, crop_size=self.crop_size,
-                                           sub_vol_path=self.sub_vol_path, normalization=self.normalization,
-                                           th_percent=self.threshold)
+                                           sub_vol_path=self.sub_vol_path)
         elif self.mode == 'val':
             list_IDsT1 = list_IDsT1[split_idx:]
             list_IDsT1ce = list_IDsT1ce[split_idx:]
             list_IDsT2 = list_IDsT2[split_idx:]
             list_IDsFlair = list_IDsFlair[split_idx:]
             labels = labels[split_idx:]
+            # self.list = create_sub_volumes(list_IDsT1, list_IDsT1ce, list_IDsT2, list_IDsFlair, labels,
+            #                                dataset_name="brats2018", mode=mode, samples=samples,
+            #                                full_vol_dim=self.full_vol_dim, crop_size=self.crop_size,
+            #                                sub_vol_path=self.sub_vol_path, normalization=self.normalization,
+            #                                th_percent=self.threshold)
             self.list = create_sub_volumes(list_IDsT1, list_IDsT1ce, list_IDsT2, list_IDsFlair, labels,
                                            dataset_name="brats2018", mode=mode, samples=samples,
                                            full_vol_dim=self.full_vol_dim, crop_size=self.crop_size,
-                                           sub_vol_path=self.sub_vol_path, normalization=self.normalization,
-                                           th_percent=self.threshold)
+                                           sub_vol_path=self.sub_vol_path)
 
         elif self.mode == 'test':
-            self.list_IDsT1 = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*t1.nii.gz')))
-            self.list_IDsT1ce = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*t1ce.nii.gz')))
-            self.list_IDsT2 = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*t2.nii.gz')))
-            self.list_IDsFlair = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*_flair.nii.gz')))
+            self.list_IDsT1 = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*t1.nii')))
+            self.list_IDsT1ce = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*t1ce.nii')))
+            self.list_IDsT2 = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*t2.nii')))
+            self.list_IDsFlair = sorted(glob.glob(os.path.join(self.testing_path, '*GG/*/*_flair.nii')))
             self.labels = None
 
         utils.save_list(self.save_name, self.list)
@@ -110,8 +123,6 @@ class MICCAIBraTS2018(Dataset):
             [img_t1, img_t1ce, img_t2, img_flair], img_seg = self.transform([img_t1, img_t1ce, img_t2, img_flair],
                                                                             img_seg)
 
-            return torch.FloatTensor(img_t1.copy()).unsqueeze(0), torch.FloatTensor(img_t1ce.copy()).unsqueeze(
-                0), torch.FloatTensor(img_t2.copy()).unsqueeze(0), torch.FloatTensor(img_flair.copy()).unsqueeze(
-                0), torch.FloatTensor(img_seg.copy())
-
-        return img_t1, img_t1ce, img_t2, img_flair, img_seg
+        return torch.FloatTensor(img_t1.copy()).unsqueeze(0), torch.FloatTensor(img_t1ce.copy()).unsqueeze(
+            0), torch.FloatTensor(img_t2.copy()).unsqueeze(0), torch.FloatTensor(img_flair.copy()).unsqueeze(
+            0), torch.FloatTensor(img_seg.copy())
