@@ -13,7 +13,7 @@ from .miccai_2019_pathology import MICCAI2019_gleason_pathology
 from .mrbrains2018 import MRIDatasetMRBRAINS2018
 
 
-def generate_datasets(args, path='.././datasets'):
+def generate_datasets(args, path='./datasets'):
     params = {'batch_size': args.batchSz,
               'shuffle': True,
               'num_workers': 2}
@@ -76,12 +76,17 @@ def generate_datasets(args, path='.././datasets'):
     elif args.dataset_name == "brats2018":
         total_data = 244
         split_idx = int(split_percent * total_data)
+        # train_loader = MICCAIBraTS2018(args, 'train', dataset_path=path, classes=args.classes, crop_dim=args.dim,
+        #                                split_idx=split_idx, samples=samples_train, load=args.loadData)
         train_loader = MICCAIBraTS2018(args, 'train', dataset_path=path, classes=args.classes, crop_dim=args.dim,
-                                       split_idx=split_idx, samples=samples_train, load=args.loadData)
+                                       split_idx=split_idx, samples=samples_train, load=False)
 
+        # val_loader = MICCAIBraTS2018(args, 'val', dataset_path=path, classes=args.classes, crop_dim=args.dim,
+        #                              split_idx=split_idx,
+        #                              samples=samples_val, load=args.loadData)
         val_loader = MICCAIBraTS2018(args, 'val', dataset_path=path, classes=args.classes, crop_dim=args.dim,
                                      split_idx=split_idx,
-                                     samples=samples_val, load=args.loadData)
+                                     samples=samples_val, load=False)
 
     elif args.dataset_name == "brats2019":
         split = (0.8, 0.2)
